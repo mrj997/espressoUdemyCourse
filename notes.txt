@@ -40,10 +40,12 @@ isChecked() with for checkboxes and toggles
 
 isSelected() => when a row or item is hilighted, this one depends on the Visibility state
 
+
 ++++++++++
 NOTE: import com.example.android.architecture.blueprints.todoapp.R
 The R file needs to be imported
 ++++++++++
+
 
 View matchers
 -------------
@@ -72,6 +74,7 @@ spinner is like a drop down menu
 withSpinnerText(...)
 
 hasLinks() matches a view that has a link in it
+
 
 Input ViewMatchers
 ------------------
@@ -103,9 +106,17 @@ onView(
 )
 ...
 
+onView(
+    allOf(
+        withId(R.id.todo_title),
+        withText("item 1")
+    )
+)
+
 we can use isAssignableFrom(...) to match on the a views class or from its parent class
 onView(isAssignableFrom(FloatingActionButton::class.java))
 we can also use withClassName, which is more specific
+
 
 Hierarchy view matcher
 ----------------------
@@ -117,6 +128,7 @@ or a view that holds a dialog in case of multi-window... etc
 
 in the case of an open dialog for example => isRoot() will match 2 views: the dialog and the activity behind it
 
+
 Root Matchers 
 -------------
  onView(...).inRoot(...)
@@ -124,4 +136,51 @@ isFocusable => clicking on elipses to open a popup menu
 isTouchable => something you can interact with
 isDialog => when the main view is hidden behind a dialog view
 isPlatformPopup => you copy a text and you want to paste it a text filed, so you get options like, autofil, paste... etc
+
+
+hamcrest matchers
+-----------------
+onView(
+    allOf(
+        withId(R.id.todo_title),
+        withText("item 1")
+    )
+)
+
+allOf famous matcher that allows creating more precise locators for views
+
+for the rest of matchers, check the companion pdf 
+
+
+How the Tests run 
+-----------------
+@RunWith(AndroidJUnit4::class) => required by espresso
+open class BaseTest { => all test classes extend the base class
+
+    /**
+     * Selected activity will be launched before each test.
+     */
+    @get:Rule
+    var activityScenarioRule = ActivityScenarioRule(TasksActivity::class.java) => this consumes the main activity for the app (when the app starts), in this case, it is the TasksActivity.java class
+}
+
+
+View action
+-----------
+The actions, like click, longClick... etc are written as arguments inside the .perform(...) call
+.perform(pressBack()) => to click back 
+alos the general click back can be performed: Espresso.pressBack()
+
+When dealing keyboards, it is considered as a 3rd party application, and it can cause flakiness with the Tests
+thus, after doing the needed actions on the keybaord, it is always important to close it: closeSoftKeyboard()
+
+we also have methods like openLinkWithText(...) which would open a link
+
+view assertions
+---------------
+doesNotExists() is different from not(isDisplayed())
+we use check(...), for example .check(matches(isDisplayed()))
+
+matches(x) => also accepts hamcrest matchers like allOf() and anyOf()
+=> the important part here is to check the return types of all these function/method calls
 

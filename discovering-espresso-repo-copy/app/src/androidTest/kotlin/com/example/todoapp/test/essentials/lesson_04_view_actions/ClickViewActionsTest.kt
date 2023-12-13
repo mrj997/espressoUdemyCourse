@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.view.KeyEvent
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.action.ViewActions.*
@@ -85,6 +86,7 @@ class ClickViewActionsTest : BaseTest() {
 
         onView(withId(R.id.add_task_description)).perform(pressBack())
         onView(withId(R.id.fab_edit_task_done)).perform(click())
+        Espresso.pressBack()
     }
 
     @Test
