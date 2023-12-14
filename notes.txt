@@ -242,3 +242,33 @@ fun setDevicePreferences() {
     // Virtual keyboard appearance property.
     uiDevice.executeShellCommand("settings put secure show_ime_with_hard_keyboard 0")
 }
+
+Data interactions
+-----------------
+every list view is back by the data adapter
+onData operates on the ListView here each item of the list is represented by the data object
+
+when using onData(), you need to chain DataOption like inAdatpterView(withId(android.R.id.list))
+basically telling espresso on which view you will be operating.
+NOTE: here we are using android.R.id.list since we are dealing with a ListActivity
+the id in the XML file would look something like this: id="@android:id/list" instead of id="@+id/list"
+
+Recycler View
+-------------
+view that represents a large set of data
+it recycles the views that are visible on the screen
+for example, a long list with only 10 items appearing on the screen
+so 1st we see itesm from 1 -> 10, then if we scroll to see item 11, then the place of item 1 will be taken by item 2... etc
+
+You act on the recycler view using onView(...)
+but when acting on its content, you need to specify the "T" paramter type and usually make use
+of RecyclerViewActions (the function names usually end with substring "Position")
+scrollToPosition<RecyclerView.ViewHolder>
+actionOnItemAtPosition<RecyclerView.ViewHolder>
+
+.perform(actionOnItemAtPosition<RecyclerView.ViewHolder>(10, scrollTo()))
+OR can be done like this:
+.perform(scrollToPosition<RecyclerView.ViewHolder>(10))
+
+in the recycler view we can act on the single item, vs a list view where we can not which is why, for the latter, we act on the data 
+
