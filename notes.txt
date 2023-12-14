@@ -176,6 +176,7 @@ thus, after doing the needed actions on the keybaord, it is always important to 
 
 we also have methods like openLinkWithText(...) which would open a link
 
+
 view assertions
 ---------------
 doesNotExists() is different from not(isDisplayed())
@@ -184,3 +185,60 @@ we use check(...), for example .check(matches(isDisplayed()))
 matches(x) => also accepts hamcrest matchers like allOf() and anyOf()
 => the important part here is to check the return types of all these function/method calls
 
+
+Setting Up the device for Espresso
+----------------------------------
+Espresso does not like animations, they can block espresso test execution an cause flakiness
+These can be turned off from developer options (if we want to do that manually that is)
+Window, Transition and Animator animation scale => turn them off (can also be turned off via "adb" shell command or from code)
+
+Accessibility: Touch and hold away: delay between the click and the content discription
+=> can cause espresso long click to become like a regular click
+So we set the value of touch and hold delay to "long" (2 sec, but you can set it to a bigger value using the commands below)
+reduce the chance for clicks and long clicks to be treated as if they are the same
+
+One source of flakiness is the keyboard. It is not actually part of the app you are testing but its own thing
+if there is small delay in keyboard animation, the espresso might lick on the keyboard instead of the app
+it is best to disable the sof keybaord
+
+All of the above can be turned off from developer options, but when running the tests from the cloud for example,
+
+adb: Android Debug Bridge
+
+``` File ```
+#!/usr/bin/env bash
+
+# set touch and hold delay to 1500 milliseconds to avoid test flakiness
+adb shell settings put secure long_press_timeout 2500
+
+# disable soft keyboard
+adb shell settings put secure show_ime_with_hard_keyboard 0
+
+# enable developer options, set stay awake to true
+adb shell settings put global development_settings_enabled 1
+adb shell settings put global stay_on_while_plugged_in 1
+
+# set animation values to 0.0
+adb shell settings put global animator_duration_scale 0.0
+adb shell settings put global transition_animation_scale 0.0
+adb shell settings put global window_animation_scale 0.0
+``` File ```
+
+running the command on the emulator itself: remove keywords "adb shell"
+This can also be done from the code itself in a before method:
+@Before
+fun setDevicePreferences() {
+    // get the instance of the UI device
+    val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+
+    // System animation properties.
+    uiDevice.executeShellCommand("settings put global animator_duration_scale 0")
+    uiDevice.executeShellCommand("settings put global transition_animation_scale 0")
+    uiDevice.executeShellCommand("settings put global window_animation_scale 0")
+
+    // Touch & hold delay property.
+    uiDevice.executeShellCommand("settings put secure long_press_timeout 2500")
+
+    // Virtual keyboard appearance property.
+    uiDevice.executeShellCommand("settings put secure show_ime_with_hard_keyboard 0")
+}
