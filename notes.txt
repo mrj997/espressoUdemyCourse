@@ -294,6 +294,7 @@ but many a time, they might no be necessary and this ends up dumping way too muc
 use this for learning and in case you are stuck on something,
 but the outputed code should not be used as is, better reduce and optimize it
 
+
 Kotlin DSL 
 ----------
 For example
@@ -305,3 +306,60 @@ fun viewWithText(text: String): ViewInteraction = Espresso.onView(withText(text)
 => replacing functions with shorter versions
 
 make sure to import your file with your changes and custom DSL if you need to
+
+
+Interacting with WebView
+------------------------
+check cheat sheet in lesson 11
+not Recommended for doing extensive web page tests
+but of some simple checks and interactions only
+
+for web page tests, use a web testing tool (like Cypress for example)
+
+you might need to enable JS in case it is not not
+onWebView().forceJavascriptEnabled()
+
+an i-frame in a webview here is treated as if it s a separate window
+so we need to use inWindow(...) to choose what to interact with, the original page or the i-frame
+
+you can not use native espresso to interact with a web view
+you will need to use stuff like webClick() instead of click()
+
+in case in the web view, native android UI opens for the user to input data and so on
+you will need to use regular espresso to interact with it
+
+best used to test integration between the web view and the native android app
+but again, use a web testing tool for extensive tests on the webview
+
+
+Test size
+---------
+@SmallTest
+@MediumTest
+@LargeTest
+
+=> these are annotations used to group tests
+these can be applied to test classes or test functions
+
+also, custom assertions can be created:
+@smoke... etc
+check: https://medium.com/@mohitgupta92/creating-custom-annotations-for-android-espresso-tests-56388025d637
+
+
+Running the tests
+-----------------
+When running the tests on a emulator or device, you have to build and install both applications
+- the app
+- the test app (no to be confused with another variant or flavor of the app, which is not), it is its own thing
+
+pm: in the commads means package manager
+you can run the tests using gradle of adb
+
+PS: instrumented tests mean they require a device or emulator
+
+for the commands, refer to lesson_13 companion folder
+you can run tests grouped in a package
+you can run tests (fun) grouped in a class
+you can run a test fun from a particular class
+you can group test classes in a suite and run that
+
