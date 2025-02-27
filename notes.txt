@@ -18,6 +18,12 @@ productFlavors {
 
 
 To view all elements in UI inspector, expand the tree and toggle off "Filter System-Defined Layers"
+this for example, disables the toolbar
+
+layout inspector tools:
+- deep inspection
+- export view so it can be inspected while the app is not running
+
 
 Component Tree and Attributes are searchable
 
@@ -31,7 +37,9 @@ Also, visibiliyt is a an enum with 3 states:
 public enum Visibility {
   VISIBLE(View.VISIBLE),
   INVISIBLE(View.INVISIBLE),
-  GONE(View.GONE); => view do not exist in the view 
+  GONE(View.GONE); => view does not exist in the view
+
+There is another matcher called isCompletleyVisitble => 100% visibility is required
   
 hasFocus() => matches views that usually editable
 or elements that are navigated to via the tab button for example
@@ -88,7 +96,7 @@ IME action is the action that is shown on the keyboard: for example, when typing
 
 supportInputMethod()
 
-onView() takes 1 matcher, so you use functions liek allOf that take many matchers to traverse views from "hamcrest"
+onView() takes 1 matcher, so you use functions like allOf that take many matchers to traverse views from "hamcrest"
 For example:
 ...
 import org.hamcrest.CoreMatchers.allOf
@@ -124,9 +132,10 @@ matching a view based on its Hierarchy in the view tree
 => usefull when there is a need to traverse in case a layout or a view for example has little info to identify it in a unique maner given the current open view
 
 isRoot() => it can be the view that holds the whole activity or fragment
-or a view that holds a dialog in case of multi-window... etc 
-
-in the case of an open dialog for example => isRoot() will match 2 views: the dialog and the activity behind it
+or a view that holds a dialog in case of multi-window... etc
+i.e an activity can have multiple roots, they would be views that show up on the same level in the Component tree
+in the case of an open dialog for example => isRoot() will match 2 views: the dialog and the activity behind it,
+so children can be used to order to narrow down on which root view we want
 
 
 Root Matchers 
@@ -135,7 +144,8 @@ Root Matchers
 isFocusable => clicking on elipses to open a popup menu
 isTouchable => something you can interact with
 isDialog => when the main view is hidden behind a dialog view
-isPlatformPopup => you copy a text and you want to paste it a text filed, so you get options like, autofil, paste... etc
+isPlatformPopup => you copy a text and you want to paste it a text filed, so you get options like, autofil, paste... it is a popup from android itself and not from the app, so you have to detect it using its own proper matcher
+
 
 
 hamcrest matchers
@@ -147,9 +157,8 @@ onView(
     )
 )
 
-allOf famous matcher that allows creating more precise locators for views
-
-for the rest of matchers, check the companion pdf 
+allOf famous matcher that allows creating more precise locators for views with multiple conditions
+for the rest of matchers, check the companion pdf on hamcrest matchers included with the course
 
 
 How the Tests run 
@@ -164,17 +173,26 @@ open class BaseTest { => all test classes extend the base class
     var activityScenarioRule = ActivityScenarioRule(TasksActivity::class.java) => this consumes the main activity for the app (when the app starts), in this case, it is the TasksActivity.java class
 }
 
+make all subclasses extend the base test class
+
+tests are all annotated by @Test and do not require test in their name
+
 
 View action
 -----------
 The actions, like click, longClick... etc are written as arguments inside the .perform(...) call
 .perform(pressBack()) => to click back 
-alos the general click back can be performed: Espresso.pressBack()
+also the general click back can be performed: Espresso.pressBack()
 
-When dealing keyboards, it is considered as a 3rd party application, and it can cause flakiness with the Tests
+When dealing with keyboards, it is considered as a 3rd party application, and it can cause flakiness with the Tests
 thus, after doing the needed actions on the keybaord, it is always important to close it: closeSoftKeyboard()
 
 we also have methods like openLinkWithText(...) which would open a link
+
+ime action buttons: the keyboard special keys, like the "search" button that looks like magnifier glass
+Returns an action that presses the current action button (next, done, search, etc) on the IME (Input Method Editor). The selected view will have its onEditorAction method called
+
+perform(...) takes varargs of ViewActions, so a series or clicks can be fed to it
 
 
 view assertions
@@ -198,17 +216,18 @@ So we set the value of touch and hold delay to "long" (2 sec, but you can set it
 reduce the chance for clicks and long clicks to be treated as if they are the same
 
 One source of flakiness is the keyboard. It is not actually part of the app you are testing but its own thing
-if there is small delay in keyboard animation, the espresso might lick on the keyboard instead of the app
-it is best to disable the sof keybaord
+if there is small delay in keyboard animation, espresso might lick on the keyboard instead of the app
+it is best to disable the soft keybaord
 
 All of the above can be turned off from developer options, but when running the tests from the cloud for example,
+then better do it via a script or from the code
 
 adb: Android Debug Bridge
 
 ``` File ```
 #!/usr/bin/env bash
 
-# set touch and hold delay to 1500 milliseconds to avoid test flakiness
+# set touch and hold delay to 2500 milliseconds to avoid test flakiness
 adb shell settings put secure long_press_timeout 2500
 
 # disable soft keyboard
@@ -251,7 +270,7 @@ onData operates on the ListView here each item of the list is represented by the
 
 when using onData(), you need to chain DataOption like inAdatpterView(withId(android.R.id.list))
 basically telling espresso on which view you will be operating.
-NOTE: here we are using android.R.id.list since we are dealing with a ListActivity
+NOTE: here we are using android.R.id.list since we are dealing with a ListActivity and ListActivity is a system component and not some thing costom to our app
 the id in the XML file would look something like this: id="@android:id/list" instead of id="@+id/list"
 
 
@@ -260,7 +279,7 @@ Recycler View
 view that represents a large set of data
 it recycles the views that are visible on the screen
 for example, a long list with only 10 items appearing on the screen
-so 1st we see itesm from 1 -> 10, then if we scroll to see item 11, then the place of item 1 will be taken by item 2... etc
+so 1st we see items from 1 -> 10, then if we scroll to see item 11, then the place of item 1 will be taken by item 2... etc
 
 You act on the recycler view using onView(...)
 but when acting on its content, you need to specify the "T" paramter type and usually make use
@@ -272,7 +291,7 @@ actionOnItemAtPosition<RecyclerView.ViewHolder>
 OR can be done like this:
 .perform(scrollToPosition<RecyclerView.ViewHolder>(10))
 
-in the recycler view we can act on the single item, vs a list view where we can not which is why, for the latter, we act on the data 
+in the recycler view we can act on the single item, vs a list view where we can not, which is why, for the latter, we act on the data 
 
 
 Espresso test recorder
@@ -353,7 +372,7 @@ When running the tests on a emulator or device, you have to build and install bo
 - the test app (no to be confused with another variant or flavor of the app, which is not), it is its own thing
 
 pm: in the commads means package manager
-you can run the tests using gradle of adb
+you can run the tests using gradle or adb
 
 PS: instrumented tests mean they require a device or emulator
 
