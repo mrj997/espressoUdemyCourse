@@ -276,12 +276,14 @@ the id in the XML file would look something like this: id="@android:id/list" ins
 
 Recycler View
 -------------
-view that represents a large set of data
+this is usefull when displaying a large set of data. It reusues exisiting views and just updates their values
 it recycles the views that are visible on the screen
 for example, a long list with only 10 items appearing on the screen
 so 1st we see items from 1 -> 10, then if we scroll to see item 11, then the place of item 1 will be taken by item 2... etc
 
-You act on the recycler view using onView(...)
+important, an item is not present in the hierarchy until it is shown on the screen
+
+You act on the recycler view using onView(...) the same way you act on a single view
 but when acting on its content, you need to specify the "T" paramter type and usually make use
 of RecyclerViewActions (the function names usually end with substring "Position")
 scrollToPosition<RecyclerView.ViewHolder>
@@ -324,7 +326,7 @@ or:
 fun viewWithText(text: String): ViewInteraction = Espresso.onView(withText(text))
 => replacing functions with shorter versions
 
-make sure to import your file with your changes and custom DSL if you need to
+make sure to import your file with your changes and custom DSL in order to use them
 
 
 Interacting with WebView
@@ -333,10 +335,11 @@ check cheat sheet in lesson 11
 not Recommended for doing extensive web page tests
 but of some simple checks and interactions only
 
-for web page tests, use a web testing tool (like Cypress for example)
+for web page tests, use a web testing tool (like Cypress for examdple)
 
-you might need to enable JS in case it is not not
+you might need to enable JS in case it is not not, if of course, there are interactions that are done with JS
 onWebView().forceJavascriptEnabled()
+if the page only has one webview, then no need to give the method a matcher
 
 an i-frame in a webview here is treated as if it s a separate window
 so we need to use inWindow(...) to choose what to interact with, the original page or the i-frame
@@ -349,6 +352,17 @@ you will need to use regular espresso to interact with it
 
 best used to test integration between the web view and the native android app
 but again, use a web testing tool for extensive tests on the webview
+
+The objects returned by espress methods are similar to those related to views
+
+in case we are dealing with an -iframe, we have 2 windows, so we need to use the window matcher and provid it
+with the windows' index
+
+in case the webview triggers android native UI, interacting with it using onWebView is not possible
+we would have to navigate to iy using an chain started with onView, or get it to open using web interactions,
+then use onView to detect it and interact with it
+
+for extensive tests on webviews, it is recommended to use tools made for web: cypress, playright... etc
 
 
 Test size
@@ -369,7 +383,7 @@ Running the tests
 -----------------
 When running the tests on a emulator or device, you have to build and install both applications
 - the app
-- the test app (no to be confused with another variant or flavor of the app, which is not), it is its own thing
+- the test app (not to be confused with another variant or flavor of the app, which is not), it is its own thing
 
 pm: in the commads means package manager
 you can run the tests using gradle or adb
@@ -382,3 +396,17 @@ you can run tests (fun) grouped in a class
 you can run a test fun from a particular class
 you can group test classes in a suite and run that
 
+example on organizing tests into test suites:
+@RunWith(Suite::class)
+@Suite.SuiteClasses(
+    ClickViewActionsTest::class,
+    TextViewActionsTest::class
+)
+class TestSuiteSample {}
+=> we then target TestSuiteSample class to run this suite
+
+for ./gradlew commands, the arg it takes is the build variant
+attaching to it the substring AndroidTest => targets the android test app
+
+this command tells us what packages are available for instrumentaion on the emulator (after assembly and install)
+we use its output in the sebsequent commands to trigger the tests
